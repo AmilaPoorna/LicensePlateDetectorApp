@@ -3,46 +3,61 @@ import cv2
 from model import detect_plate
 from ocr import read_text
 import tempfile
+import os
+import csv
 
 st.set_page_config(layout="wide")
-st.title("🚗 License Plate Recoginizer")
-st.markdown("Upload a video to recognize and annotate vehicle license plates.")
+st.title("🚗 License Plate Detector & OCR")
+st.markdown("Upload a video. This app will extract and OCR all detected license plates.")
 
-video_file = st.file_uploader("Upload a video file", type=["mp4", "mov", "avi"])
-output_path = "outputs/annotated_output.mp4"
+video_file = st.file_uploader("📹 Upload a video file", type=["mp4", "mov", "avi"])
+output_dir = "outputs/plates"
+csv_path = "outputs/plate_texts.csv"
+
+# Ensure output directory exists
+os.makedirs(output_dir, exist_ok=True)
 
 if video_file:
+    # Save temp video file
     tfile = tempfile.NamedTemporaryFile(delete=False)
     tfile.write(video_file.read())
 
     cap = cv2.VideoCapture(tfile.name)
-    width, height = int(cap.get(3)), int(cap.get(4))
-    fps = cap.get(cv2.CAP_PROP_FPS)
 
-    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
+    results = []
+    plate_counter = 0
+    frame_count = 0
 
-    stframe = st.empty()
-
-    with st.spinner("🔍 Processing the video..."):
+    with st.spinner("🔍 Processing video and extracting plates..."):
         while cap.isOpened():
             ret, frame = cap.read()
             if not ret:
                 break
 
+            frame_count += 1
             plates = detect_plate(frame)
-            for cropped, (x1, y1, x2, y2) in plates:
+
+            for cropped, _ in plates:
                 text = read_text(cropped)
-                cv2.rectangle(frame, (x1, y1), (x2, y2), (0,255,0), 2)
-                cv2.putText(frame, text, (x1, y1-10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0,255,0), 2)
+                plate_filename = f"plate_{frame_count}_{plate_counter}.png"
+                plate_path = os.path.join(output_dir, plate_filename)
 
-            out.write(frame)
+                cv2.imwrite(plate_path, cropped)
 
-            preview = cv2.resize(frame, (640, 360))
-            stframe.image(preview, channels="BGR")
+                results.append((plate_filename, text))
+                plate_counter += 1
 
     cap.release()
-    out.release()
 
-    st.success("✅ Processing complete!")
-    st.video(output_path)
+    # Write results to CSV
+    with open(csv_path, mode='w', newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow(["Filename", "PlateText"])
+        writer.writerows(results)
+
+    # Show results in Streamlit
+    st.success("✅ Plates extracted successfully!")
+    st.download_button("📥 Download CSV", data=open(csv_path, 'rb'), file_name="plate_texts.csv")
+
+    for filename, text in results:
+        st.image(os.path.join(output_dir, filename), caption=f"Detected: {text}")
