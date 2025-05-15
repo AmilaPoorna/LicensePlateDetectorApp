@@ -44,7 +44,7 @@ if uploaded_video is not None:
         out.write(frame)
 
         if i % 5 == 0:
-            st.image(frame, channels="BGR", caption=f"Frame {i}", use_column_width=True)
+            st.image(frame, channels="BGR", caption=f"Frame {i}", use_container_width=True)
 
         progress.progress((i+1) / frame_count)
 
