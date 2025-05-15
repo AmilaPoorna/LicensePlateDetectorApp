@@ -1,45 +1,75 @@
 import streamlit as st
-from pathlib import Path
+import cv2
 import tempfile
+import numpy as np
+from ultralytics import YOLO
 import os
-from utils import load_model, process_video
-
-st.set_page_config(page_title="License Plate Detector App", layout="wide")
 
 st.title("License Plate Detector")
 
-uploaded_file = st.file_uploader("Upload a video:", type=["mp4", "mov", "avi", "mkv"])
+# Load model once
+@st.cache_resource
+def load_model():
+    return YOLO('best.pt')
 
-if uploaded_file:
+model = load_model()
+
+uploaded_video = st.file_uploader("Upload a video", type=["mp4", "avi", "mov"])
+
+if uploaded_video is not None:
     tfile = tempfile.NamedTemporaryFile(delete=False)
-    tfile.write(uploaded_file.read())
-    input_video_path = Path(tfile.name)
+    tfile.write(uploaded_video.read())
+    video_path = tfile.name
 
-    st.video(str(input_video_path))
+    # Prepare output path
+    output_path = "annotated_output.mp4"
 
-    if st.button("Start Processing"):
+    # Read video
+    cap = cv2.VideoCapture(video_path)
 
-        model = load_model("best.pt")
+    # Video info
+    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    fps = cap.get(cv2.CAP_PROP_FPS)
 
-        output_video_path = input_video_path.parent / f"output_{input_video_path.name}"
+    # Setup video writer for output
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
 
-        progress_bar = st.progress(0)
-        status_text = st.empty()
+    stframe = st.empty()  # placeholder for video frames
 
-        def progress_callback(progress):
-            progress_bar.progress(min(progress, 1.0))
-            status_text.text(f"Processing: {int(progress*100)}%")
+    frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    progress_bar = st.progress(0)
+    
+    for i in range(frame_count):
+        ret, frame = cap.read()
+        if not ret:
+            break
+        
+        # Run detection
+        results = model(frame)
+        annotated_frame = results[0].plot()  # returns annotated frame
+        
+        # Write frame to output video
+        out.write(annotated_frame)
 
-        process_video(input_video_path, output_video_path, model, progress_callback)
+        # Convert BGR to RGB for Streamlit
+        annotated_frame_rgb = cv2.cvtColor(annotated_frame, cv2.COLOR_BGR2RGB)
+        stframe.image(annotated_frame_rgb, channels="RGB")
 
-        st.success("Done!")
-        st.video(str(output_video_path))
+        # Update progress bar
+        progress_bar.progress((i + 1) / frame_count)
+    
+    cap.release()
+    out.release()
 
-        with open(output_video_path, "rb") as f:
-            video_bytes = f.read()
-            st.download_button(
-                label="Download the Processed Video",
-                data=video_bytes,
-                file_name="processed_video.mp4",
-                mime="video/mp4"
-            )
+    st.success("Video processing complete!")
+
+    # Provide download link
+    with open(output_path, "rb") as f:
+        st.download_button(
+            label="Download Annotated Video",
+            data=f,
+            file_name="annotated_video.mp4",
+            mime="video/mp4"
+        )
