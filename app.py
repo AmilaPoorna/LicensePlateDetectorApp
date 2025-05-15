@@ -1,7 +1,7 @@
 import streamlit as st
 import cv2
-from yolov8_inference import detect_plates
-from ocr_utils import read_plate_text
+from model import detect_plates
+from ocr import read_plate_text
 import tempfile
 
 st.title("🚗 License Plate Recognizer")
