@@ -4,7 +4,8 @@ from ultralytics import YOLO
 from pathlib import Path
 
 def load_model(weights_path="best.pt"):
-    model = YOLO(weights_path)
+    model_path = os.path.join(os.path.dirname(__file__), weights_path)
+    model = YOLO(model_path)
     return model
 
 def process_video(input_path, output_path, model, progress_callback=None):
