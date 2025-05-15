@@ -20,10 +20,17 @@ if 'processed' not in st.session_state:
     st.session_state.processed = False
 if 'output_path' not in st.session_state:
     st.session_state.output_path = None
+if 'last_uploaded_name' not in st.session_state:
+    st.session_state.last_uploaded_name = None
 
 uploaded_video = st.file_uploader("Upload a Video:", type=["mp4", "avi", "mov"])
 
 if uploaded_video is not None:
+    if uploaded_video.name != st.session_state.last_uploaded_name:
+        st.session_state.processed = False
+        st.session_state.output_path = None
+        st.session_state.last_uploaded_name = uploaded_video.name
+
     if not st.session_state.processed:
         tfile = tempfile.NamedTemporaryFile(delete=False)
         tfile.write(uploaded_video.read())
