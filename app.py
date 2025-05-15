@@ -8,7 +8,7 @@ st.set_page_config(page_title="License Plate Detector", layout="centered")
 st.title("License Plate Detector App")
 st.write("Upload a video to detect license plates.")
 
-uploaded_file = st.file_uploader("Upload a video", type=["mp4", "mov", "avi"])
+uploaded_file = st.file_uploader("Upload a video:", type=["mp4", "mov", "avi"])
 if uploaded_file:
     with open("temp_video.mp4", "wb") as f:
         f.write(uploaded_file.read())
