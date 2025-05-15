@@ -2,7 +2,7 @@ from ultralytics import YOLO
 
 model = YOLO("best.pt")
 
-def detect_plates(frame):
+def detect_plate(frame):
     results = model(frame, imgsz=640)[0]
     plates = []
     for box in results.boxes:

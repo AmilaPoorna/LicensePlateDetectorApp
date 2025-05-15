@@ -1,7 +1,7 @@
 import pytesseract
 import cv2
 
-def read_plate_text(cropped):
+def read_text(cropped):
     gray = cv2.cvtColor(cropped, cv2.COLOR_BGR2GRAY)
     gray = cv2.bilateralFilter(gray, 11, 17, 17)
     _, thresh = cv2.threshold(gray, 150, 255, cv2.THRESH_BINARY)
