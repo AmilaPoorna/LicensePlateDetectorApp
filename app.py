@@ -1,42 +1,57 @@
 import streamlit as st
-from utils import load_model, process_video
-from datetime import datetime
 import tempfile
 import os
+import cv2
+import numpy as np
+from ultralytics import YOLO
 
-st.set_page_config(page_title="License Plate Detector App", layout="centered")
+model = YOLO("model/best.pt")
+
 st.title("License Plate Detector")
 
-uploaded_file = st.file_uploader("Upload a video:", type=["mp4", "mov", "avi"])
+uploaded_video = st.file_uploader("Upload a video:", type=["mp4", "avi", "mov"])
 
-if uploaded_file:
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as tmp_input:
-        tmp_input.write(uploaded_file.read())
-        input_path = tmp_input.name
+if uploaded_video is not None:
+    tfile = tempfile.NamedTemporaryFile(delete=False)
+    tfile.write(uploaded_video.read())
+    input_path = tfile.name
 
-    model = load_model("best.pt")
+    st.video(input_path)
+    st.write("Processing the video...")
 
-    tmp_output = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
-    output_path = tmp_output.name
+    cap = cv2.VideoCapture(input_path)
+    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    fps = cap.get(cv2.CAP_PROP_FPS)
 
-    stframe = st.empty()
-    progress_bar = st.progress(0)
-    progress_text = st.empty()
+    output_path = os.path.join("output", os.path.basename(input_path))
+    os.makedirs("output", exist_ok=True)
+    out = cv2.VideoWriter(output_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (width, height))
 
-    def show_frame(frame, current, total):
-        stframe.image(frame, channels="BGR", caption=f"Frame {current} of {total}")
-        progress_bar.progress(current / total)
-        progress_text.text(f"Processing: {current}/{total} frames")
+    progress = st.progress(0)
+    frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
-    try:
-        with st.spinner("🔍 Processing video..."):
-            process_video(model, input_path, output_path, show_frame)
+    for i in range(frame_count):
+        ret, frame = cap.read()
+        if not ret:
+            break
+        results = model(frame)[0]
 
-        st.success("✅ Video processed successfully!")
-        st.video(output_path)
+        for box in results.boxes.xyxy:
+            x1, y1, x2, y2 = map(int, box[:4])
+            cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
 
-        with open(output_path, "rb") as f:
-            st.download_button("📥 Download Processed Video", f, file_name="processed_video.mp4")
+        out.write(frame)
 
-    except Exception as e:
-        st.error(f"❌ An error occurred: {e}")
+        if i % 5 == 0:
+            st.image(frame, channels="BGR", caption=f"Frame {i}", use_column_width=True)
+
+        progress.progress((i+1) / frame_count)
+
+    cap.release()
+    out.release()
+    st.success("Done!")
+    st.video(output_path)
+
+    with open(output_path, "rb") as f:
+        st.download_button("Download the Processed Video", f, file_name="processed_video.mp4")
