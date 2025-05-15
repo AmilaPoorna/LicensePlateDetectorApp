@@ -8,14 +8,10 @@ def load_model(weights_path="best.pt"):
     return model
 
 def process_video(input_path, output_path, model, progress_callback=None):
-    """
-    Runs YOLOv8 inference on the input video and saves output with detected license plates.
-    Calls progress_callback(progress: float) to update UI progress.
-    """
 
     cap = cv2.VideoCapture(str(input_path))
     if not cap.isOpened():
-        raise IOError(f"Cannot open video file {input_path}")
+        raise IOError(f"Cannot open video: {input_path}")
 
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
@@ -34,7 +30,6 @@ def process_video(input_path, output_path, model, progress_callback=None):
 
         results = model(frame)[0]
 
-        # Draw boxes and labels on frame
         for box in results.boxes:
             xyxy = box.xyxy[0].cpu().numpy().astype(int)
             conf = box.conf[0].cpu().numpy()

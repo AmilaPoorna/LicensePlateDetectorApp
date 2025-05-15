@@ -4,11 +4,11 @@ import tempfile
 import os
 from utils import load_model, process_video
 
-st.set_page_config(page_title="YOLOv8 License Plate Detector", layout="wide")
+st.set_page_config(page_title="License Plate Detector App", layout="wide")
 
-st.title("License Plate Detection from Video (YOLOv8)")
+st.title("License Plate Detector")
 
-uploaded_file = st.file_uploader("Upload a video file", type=["mp4", "mov", "avi", "mkv"])
+uploaded_file = st.file_uploader("Upload a video:", type=["mp4", "mov", "avi", "mkv"])
 
 if uploaded_file:
     tfile = tempfile.NamedTemporaryFile(delete=False)
@@ -17,7 +17,7 @@ if uploaded_file:
 
     st.video(str(input_video_path))
 
-    if st.button("Start Detection"):
+    if st.button("Start Processing"):
 
         model = load_model("best.pt")
 
@@ -32,18 +32,14 @@ if uploaded_file:
 
         process_video(input_video_path, output_video_path, model, progress_callback)
 
-        st.success("Processing completed!")
+        st.success("Done!")
         st.video(str(output_video_path))
 
         with open(output_video_path, "rb") as f:
             video_bytes = f.read()
             st.download_button(
-                label="Download Processed Video",
+                label="Download the Processed Video",
                 data=video_bytes,
                 file_name="processed_video.mp4",
                 mime="video/mp4"
             )
-
-        # Clean up temp files
-        os.remove(str(input_video_path))
-        os.remove(str(output_video_path))
