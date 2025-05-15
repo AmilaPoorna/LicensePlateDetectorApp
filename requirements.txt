@@ -1,4 +1,3 @@
 streamlit
 ultralytics
-pytesseract
 opencv-python
