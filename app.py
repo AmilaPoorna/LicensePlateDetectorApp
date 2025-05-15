@@ -3,7 +3,10 @@ import cv2
 import tempfile
 import numpy as np
 from ultralytics import YOLO
+import torch
 import os
+
+torch.classes.__path__ = []
 
 st.title("License Plate Detector")
 
@@ -13,18 +16,14 @@ def load_model():
 
 model = load_model()
 
-uploaded_video = st.file_uploader("Upload a video:", type=["mp4", "avi", "mov"])
+uploaded_video = st.file_uploader("Upload a video", type=["mp4", "avi", "mov"])
 
-if 'processed' not in st.session_state:
-    st.session_state.processed = False
-    st.session_state.output_path = None
-
-if uploaded_video is not None and not st.session_state.processed:
+if uploaded_video is not None:
     tfile = tempfile.NamedTemporaryFile(delete=False)
     tfile.write(uploaded_video.read())
     video_path = tfile.name
 
-    output_path = os.path.join(tempfile.gettempdir(), "processed_output.mp4")
+    output_path = "processed_output.mp4"
 
     cap = cv2.VideoCapture(video_path)
 
@@ -35,31 +34,32 @@ if uploaded_video is not None and not st.session_state.processed:
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
 
-    stframe = st.empty()
+    stframe = st.empty() 
+
     frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     progress_bar = st.progress(0)
-
+    
     for i in range(frame_count):
         ret, frame = cap.read()
         if not ret:
             break
+        
         results = model(frame)
         processed_frame = results[0].plot()
+        
         out.write(processed_frame)
 
         processed_frame_rgb = cv2.cvtColor(processed_frame, cv2.COLOR_BGR2RGB)
         stframe.image(processed_frame_rgb, channels="RGB")
-        progress_bar.progress((i + 1) / frame_count)
 
+        progress_bar.progress((i + 1) / frame_count)
+    
     cap.release()
     out.release()
 
     st.success("Done!")
-    st.session_state.processed = True
-    st.session_state.output_path = output_path
 
-if st.session_state.processed and st.session_state.output_path:
-    with open(st.session_state.output_path, "rb") as f:
+    with open(output_path, "rb") as f:
         st.download_button(
             label="Download the Processed Video",
             data=f,
