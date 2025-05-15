@@ -1,5 +1,4 @@
-streamlit==1.32.2
+streamlit
 numpy
-ultralytics==8.1.21
-torch==2.0.1
+ultralytics
 opencv-python
