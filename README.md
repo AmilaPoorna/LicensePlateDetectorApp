@@ -1,1 +1,1 @@
-# LicensePlateRecognizerApp
+# LicensePlateDetectorApp
