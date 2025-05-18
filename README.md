@@ -4,7 +4,7 @@ This is a simple Streamlit web application that allows users to upload a video a
 
 ## 📸 Demo
 
-![Demo]([demo.gif](https://github.com/user-attachments/assets/cc537905-6546-4262-905b-e8f773fbbf89))  
+![Demo](https://github.com/user-attachments/assets/cc537905-6546-4262-905b-e8f773fbbf89)  
 *Replace with actual GIF or image of your app.*
 
 ---
