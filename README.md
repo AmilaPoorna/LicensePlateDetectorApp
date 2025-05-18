@@ -1,27 +1,20 @@
 # 🚘 License Plate Detector App
 
-This is a simple Streamlit web application that allows users to upload a video and detect license plates using a trained YOLOv8 model. The app annotates videos highlighting the detected license plates, which can be downloaded directly from the app too.
+[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://licenseplatedetectorapp-a3h3kbmn8xmn7ds4a4yu2s.streamlit.app/)
 
-## 📸 Demo
+This is a simple Streamlit web application that allows users to upload a video and detect license plates using a trained YOLOv8 model. The app annotates the video by highlighting the detected license plates, which can then be downloaded directly from the app.
+
+## Demo
 
 ![Demo](https://github.com/user-attachments/assets/cc537905-6546-4262-905b-e8f773fbbf89)  
-*Replace with actual GIF or image of your app.*
+*GIF of an annotated video.*
 
 ---
 
-## 🔧 Features
+## Features
 
-- 📁 Upload videos in `.mp4`, `.avi`, or `.mov` format
-- 🧠 Automatically detect license plates using a custom-trained YOLOv8 model (`best.pt`)
-- 🎞 Annotates license plates frame-by-frame in real-time
-- 💾 Allows downloading of the processed video
-- 📊 Displays progress while processing the video
-
----
-
-## 📦 Installation
-
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/your-username/license-plate-streamlit-app.git
-   cd license-plate-streamlit-app
+- Allows users to upload videos in `.MP4`, `.AVI`, `.MOV` or `.MPEG4` format.
+- Detects license plates using a trained `YOLOv8n` model on **License-Plate-Recognition-11** dataset from Roboflow Universe.
+- Displays frame-by-frame annotations of detected license plates
+- Displays progress while processing the video.
+- Allows users to download processed video.
