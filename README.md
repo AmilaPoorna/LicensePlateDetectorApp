@@ -13,6 +13,6 @@ This is a simple Streamlit web application that allows users to upload a video a
 
 - Allows users to upload videos in `.MP4`, `.AVI`, `.MOV` or `.MPEG4` format.
 - Detects license plates using a trained `YOLOv8n` model on **License-Plate-Recognition-11** dataset from Roboflow Universe.
-- Displays frame-by-frame annotations of detected license plates
+- Displays frame-by-frame annotations of detected license plates.
 - Displays progress while processing the video.
 - Allows users to download processed video.
